@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>IoT - Web kontrolisani LCD Displej</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="webArduinoRpi.css">
+		<script src="socket.io/socket.io.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="js/sockets.js"></script>
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	</head>
+
+	<style>
+		@font-face {
+			font-family: 'CustomLedFont';
+			src: url('fonts/SFDigitalReadout-Medium.ttf'); /* IE9 Compat Modes */
+			src: url('fonts/SFDigitalReadout-Medium.ttf?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+				url('fonts/SFDigitalReadout-Medium.ttf')  format('truetype'), /* Safari, Android, iOS */
+		}
+		.fontSFD {
+			font-family: 'CustomLedFont', Fallback, sans-serif;
+			font-size: 600%;
+		}
+		.padding-button {
+			margin-top: 6%;
+		}	
+		body {
+			background-image: url("img/background.png");
+		}
+	</style>
+
+
+	<body>
+		<nav class="navbar navbar-light bg-dark">
+			<span class="navbar-brand mb-0 h1" style="color:white;">IoT - Web kontrolisani LCD Displej</span>
+	 	</nav>
+
+		<div class="container bg-dark" style="margin-top: 2%;">
+			<div class="row" style="padding-top: 2%; padding-bottom: 2%;">
+				<div class="col-sm">
+					<div class="form-group">
+						<textarea class="form-control" rows="9	" id="command"></textarea>
+					</div>
+							
+					<button id="send" type="button" class="btn btn-secondary" style="width: 100%;">Pošalji tekst</button>
+				</div>
+				<div class="col-sm">
+					<h3 style="text-align: center; color: white;">Kontrolna tabla</h3>
+					<button id="btnRnd" type="button" class="btn btn-primary padding-button" style="width: 100%;">Nasumična poruka</button>
+					<button id="btnClear" type="button" class="btn btn-danger padding-button" style="width: 100%;">Očisti ekran</button>
+
+					<div style="display: table; margin: auto; padding-top: 6%;" class="">
+						<div class="btn-group mr-2" role="group" aria-label="Second group">
+								<button id="btnMinus" type="button" class="btn btn-warning">-</button>
+								<button id="btnDelay" type="button" class="btn btn-warning" disabled>Delay (3s)</button>
+								<button id="btnPlus" type="button" class="btn btn-warning">+</button>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+
+		<div class="container bg-light" style="width:90%;">
+			<div>
+				<p id="visibleText" class="fontSFD" style="text-align: center;"></p>
+			</div>
+		</div>
+	</body>
+	
+	<script>
+		var socket = io.connect("127.0.0.1:3000/arduino");
+		var command = document.getElementById("command");
+		var button = document.getElementById("send");
+		var btnRnd = document.getElementById("btnRnd");
+		var btnClear = document.getElementById("btnClear");
+		var result = document.getElementById("result");
+
+		var btnPlus = document.getElementById("btnPlus");
+		var btnMinus = document.getElementById("btnMinus");
+
+		var randomMSG = 
+		[
+			"Ono sto vodi i vuce svet, nisu lokomotive, nego ideje.",
+			"Covek moze da umre, nacije da se uzdizu i padaju, ali ideja i dalje zivi.",
+			"Bolje malo pivo, nego veliko hvala!"    
+		];
+
+		var clearMSG = "                                  ";
+		var delayGlobal = 3;
+
+		var zahtev = function()
+		{
+			var temp = command.value; 
+			var temp = temp.split('\n').join(' ');
+
+			document.getElementById("visibleText").innerText = temp;
+			socket.emit("sendArduino", {"text": temp});
+			console.clear();
+		}
+
+		var rndZahtev = function()
+		{
+			var index = Math.floor((Math.random() * randomMSG.length));
+			document.getElementById("visibleText").innerText = randomMSG[index];
+			document.getElementById("command").value = randomMSG[index];
+			socket.emit("sendArduino", {"text": randomMSG[index]});
+		}
+
+		var clearZahtev = function()
+		{
+			document.getElementById("visibleText").innerText = "";
+			document.getElementById("command").value = "";
+			socket.emit("sendArduino", {"text": clearMSG});
+		}
+
+		var plusZahtev = function()
+		{
+			if(delayGlobal < 9) delayGlobal += 1;
+			document.getElementById("btnDelay").innerText = "Delay (" + delayGlobal + "s)";
+			socket.emit("sendArduino", {"delay": "+"});
+		}
+
+		var minusZahtev = function()
+		{
+			if(delayGlobal > 1) delayGlobal -= 1;
+			document.getElementById("btnDelay").innerText = "Delay (" + delayGlobal + "s)";
+			socket.emit("sendArduino", {"delay": "-"});
+		}
+
+		button.addEventListener("click", zahtev);
+		btnRnd.addEventListener("click", rndZahtev);
+		btnClear.addEventListener("click", clearZahtev);
+		btnPlus.addEventListener("click", plusZahtev);
+		btnMinus.addEventListener("click", minusZahtev);
+				
+		socket.on('results', function(msg)
+		{
+			
+		});
+	</script>
+</html>
