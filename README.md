@@ -24,6 +24,6 @@ Live example.<br><br>
 
 Source code can be found on [github](https://github.com/georgeOsdDev/markdown-edit), licenced under [MIT](http://opensource.org/licenses/mit-license.php).
 
-Developed by [Bokunda](#) 
+Developed by [Jelena Colic](https://github.com/jelenacolic), Marija Janicijevic and [Bokunda](https://github.com/bokunda) 
 © 2018.
 
